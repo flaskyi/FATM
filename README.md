@@ -15,6 +15,9 @@
 - [Usage](#usage)
 - [License](#license)
 
+> [!WARNING]
+> This project is not well tested, documented. It may contain bugs, errors, and security vulnerabilities. Use it at your own risk.
+
 ## Introduction
 This is a training module for the Flaskyi AI model. The model is trained to generate high quality 4k images based on a given input image. The model is trained on a dataset of 6.5 billion images and has an accuracy of 93.5%.
 
@@ -28,6 +31,11 @@ This is a training module for the Flaskyi AI model. The model is trained to gene
 - Python
 - Pip
 - PyTorch
+- Transformers
+- Diffusers
+- Datasets
+- Accelerate
+- CUDA (REQUIRED)
 - Flaskyi
 
 ## Setup

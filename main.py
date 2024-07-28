@@ -1,32 +1,18 @@
 import torch
 import logging
-from tqdm import tqdm
-from transformers import CLIPTextModel, CLIPTokenizer
-from diffusers import StableDiffusionPipeline, DiffusionPipelineTrainer, AutoencoderKL, UNet2DConditionModel, DDIMScheduler
 from datasets import load_dataset
-from accelerate import Accelerator
-from huggingface_hub import push_to_hub
+from pipelines.diffusion_pipeline import load_diffusion_pipelines
+from pipelines.stable_diffusion_pipeline import create_stable_diffusion_pipeline
+from training.trainer import train_pipeline
+from utils.push_to_hub import push_model_to_hub
+from config.logging_config import setup_logging
 
-# Logging setup
-logging.basicConfig(level=logging.INFO)
+setup_logging()
 logger = logging.getLogger(__name__)
 
 if torch.cuda.is_available():
     logger.info("Using GPU")
-    pipe = DiffusionPipeline.from_pretrained(
-        "SG161222/RealVisXL_V3.0_Turbo",
-        torch_dtype=torch.float16,
-        use_safetensors=True,
-        add_watermarker=False,
-        variant="fp16"
-    )
-    pipe2 = DiffusionPipeline.from_pretrained(
-        "SG161222/RealVisXL_V2.02_Turbo",
-        torch_dtype=torch.float16,
-        use_safetensors=True,
-        add_watermarker=False,
-        variant="fp16"
-    )
+    pipe, pipe2 = load_diffusion_pipelines()
 else:
     logger.warning("Using CPU, training will be slow")
 
@@ -38,30 +24,14 @@ scheduler = pipe.scheduler
 
 dataset = load_dataset("flaskyi/flaskyi-v1-dataset")
 
-pipe = StableDiffusionPipeline(
-    text_encoder=text_encoder,
-    vae=vae,
-    unet=unet,
-    scheduler=scheduler
-)
-
-trainer = DiffusionPipelineTrainer(
-    pipe,
-    dataset=dataset,
-    learning_rate=1e-5,
-    train_batch_size=4,
-    output_dir="./results"
-)
+pipe = create_stable_diffusion_pipeline(text_encoder, vae, unet, scheduler)
 
 logger.info("Starting training")
-trainer.train()
+train_pipeline(pipe, dataset)
 logger.info("Training finished")
 
 pipe.save_pretrained("flaskyi/flaskyi-v1")
 logger.info("Model saved")
 
-push_to_hub(
-    repo_id="flaskyi/flaskyi-v1",
-    local_dir="flaskyi/flaskyi-v1"
-)
+push_model_to_hub("flaskyi/flaskyi-v1", "flaskyi/flaskyi-v1")
 logger.info("Model pushed to Hugging Face")
