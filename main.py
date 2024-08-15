@@ -33,5 +33,5 @@ logger.info("Training finished")
 pipe.save_pretrained("flaskyi/flaskyi-v1")
 logger.info("Model saved")
 
-push_model_to_hub("flaskyi/flaskyi-v1", "flaskyi/flaskyi-v1")
+push_model_to_hub("flaskyi/flaskyi-v1", "./results")
 logger.info("Model pushed to Hugging Face")
